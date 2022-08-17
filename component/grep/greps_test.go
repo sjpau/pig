@@ -1,7 +1,6 @@
 package grep
 
 import (
-	"reflect"
 	"testing"
 )
 
@@ -20,7 +19,7 @@ func TestIsKnownFile(t *testing.T) {
 	}
 	for _, j := range units {
 		t.Run(j.desc, func(t *testing.T) {
-			if result := IsKnownFile(j.in); result != j.expected {
+			if result := IsFileFormat(j.in); result != j.expected {
 				t.Errorf("Expected %t, received %t", j.expected, result)
 			}
 		})
@@ -44,12 +43,4 @@ func TestFileNameFromPath(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestInternalDocumentPaths(t *testing.T) {
-	t.Run("With specified extension.", func(t *testing.T) {
-		if result := InternalDocumentPaths("<tag><a href=\"/asd/das/file.odt></a></tag>\"", ".odt", ".pdf"); !reflect.DeepEqual(result, []string{"/asd/das/file.odt"}) {
-			t.Errorf("Failed to grep specified extension. %s", result)
-		}
-	})
 }
