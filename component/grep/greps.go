@@ -31,3 +31,9 @@ func FileNameFromPath(path string) string {
 	name := pattern.FindString(path)
 	return name
 }
+
+func DomainNameFromURL(url string) string {
+	pattern := regexp.MustCompile("[^(https?\\:\\/\\/)].*[^(\\/*)]")
+	name := pattern.FindString(url)
+	return name
+}

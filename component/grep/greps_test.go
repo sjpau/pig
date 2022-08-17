@@ -44,3 +44,23 @@ func TestFileNameFromPath(t *testing.T) {
 		})
 	}
 }
+
+func TestDomainNameFromURL(t *testing.T) {
+	units := []struct {
+		desc     string
+		in       string
+		expected string
+	}{
+		{"https regular", "https://mobyus.xyz", "mobyus.xyz"},
+		{"https + trailing slash", "https://mobyus.xyz/", "mobyus.xyz"},
+		{"http regular", "http://mobyus.xyz", "mobyus.xyz"},
+		{"http + trailing slash", "http://mobyus.xyz/", "mobyus.xyz"},
+	}
+	for _, j := range units {
+		t.Run(j.desc, func(t *testing.T) {
+			if result := DomainNameFromURL(j.in); result != j.expected {
+				t.Errorf("Expected %s, received %s", j.expected, result)
+			}
+		})
+	}
+}
