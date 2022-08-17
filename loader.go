@@ -1,4 +1,4 @@
-package loader
+package main
 
 import (
 	"bufio"
@@ -49,16 +49,12 @@ func (self *File) Download(url string) error {
 		return err
 	}
 	defer response.Body.Close()
-	if self.Ask("Download") {
-		out, err := os.Create(self.Name)
-		if err != nil {
-			return err
-		}
-		defer out.Close()
-
-		_, err = io.Copy(out, response.Body)
-		return err
-	} else {
+	out, err := os.Create(self.Name)
+	if err != nil {
 		return err
 	}
+	defer out.Close()
+
+	_, err = io.Copy(out, response.Body)
+	return err
 }
