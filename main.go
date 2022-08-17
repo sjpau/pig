@@ -1,19 +1,29 @@
 package main
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"os"
 	"time"
 
 	"github.com/gocolly/colly/v2"
+	"github.com/sjpau/pig/component/grep"
 )
 
+type HASH [32]byte
+
 /*TODO:
-Introduce wait group for downloading files.
-Dirwalking
+Lazy crawling
+Domain specifiaction
+Extension specification
+Put crawling on a gorouting?
 */
 func main() {
-	crawler := colly.NewCollector()
+	files := make(map[HASH]File)
+	domain := grep.DomainNameFromURL(os.Args[1])
+	crawler := colly.NewCollector(
+		colly.AllowedDomains(domain),
+	)
 	crawler.Limit(&colly.LimitRule{
 		DomainGlob:  os.Args[1] + "/*",
 		Delay:       1 * time.Second,
@@ -21,7 +31,21 @@ func main() {
 	})
 	crawler.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		link := e.Attr("href")
-		fmt.Println(e.Request.AbsoluteURL(link))
+		url := e.Request.AbsoluteURL(link)
+		if grep.IsFileFormat(link) {
+			//Deal with a file
+			tmp := File{
+				Path: url,
+				Name: grep.FileNameFromPath(link),
+			}
+			files[sha256.Sum256([]byte(url))] = tmp
+		} else {
+			fmt.Println("Visiting ", url)
+			crawler.Visit(url)
+		}
 	})
 	crawler.Visit(os.Args[1])
+	for key, value := range files {
+		fmt.Println(key, value)
+	}
 }
