@@ -8,20 +8,11 @@ import (
 	"net/http"
 	"os"
 	"strings"
-
-	"github.com/sjpau/pig/component/grep"
 )
 
 type File struct {
 	Path string
 	Name string
-}
-
-func New(url string) *File {
-	return &File{
-		Path: url,
-		Name: grep.FileNameFromPath(url),
-	}
 }
 
 func (self *File) Ask(s string) bool {
@@ -43,8 +34,8 @@ func (self *File) Ask(s string) bool {
 	}
 }
 
-func (self *File) Download(url string) error {
-	response, err := http.Get(url + self.Path)
+func (self *File) Download() error {
+	response, err := http.Get(self.Path)
 	if err != nil {
 		return err
 	}
