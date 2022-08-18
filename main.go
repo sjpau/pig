@@ -3,7 +3,6 @@ package main
 import (
 	"crypto/sha256"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/gocolly/colly/v2"
@@ -12,44 +11,45 @@ import (
 
 type HASH [32]byte
 
-/*TODO:
-Lazy crawling
-Extension specification
-Put crawling on a gorouting?
-*/
 func main() {
-
+	InitCmdOptions()
 	files := make(map[HASH]File)
-	domain := grep.DomainNameFromURL(os.Args[1])
+	domain := grep.DomainNameFromURL(FlagURL)
 	crawler := colly.NewCollector(
 		colly.AllowedDomains(domain),
 	)
 
 	crawler.Limit(&colly.LimitRule{
-		DomainGlob:  os.Args[1] + "/*",
-		Delay:       1 * time.Second,
+		DomainGlob:  FlagURL + "/*",
+		Delay:       time.Duration(FlagLazy) * time.Second,
 		RandomDelay: 1 * time.Second,
 	})
 
 	crawler.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		link := e.Attr("href")
 		url := e.Request.AbsoluteURL(link)
-		if grep.IsFileFormat(link) {
+		if grep.IsFileFormat(link, FlagExt) {
 			tmp := File{
 				Path: url,
 				Name: grep.FileNameFromPath(link),
 			}
 			files[sha256.Sum256([]byte(url))] = tmp
 		} else {
-			fmt.Println("Visiting", url)
+			if FlagVerbose {
+				fmt.Println("Visiting", url)
+			}
 			crawler.Visit(url)
 		}
 	})
 
-	crawler.Visit(os.Args[1])
+	crawler.Visit(FlagURL)
 	for _, value := range files {
-		if value.Ask("Download") {
-			value.Download()
+		if FlagAsk {
+			if value.Ask("Download") {
+				value.Download(FlagDest)
+			}
+		} else {
+			value.Download(FlagDest)
 		}
 	}
 }

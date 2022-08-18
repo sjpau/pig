@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/schollz/progressbar/v3"
 )
 
 type File struct {
@@ -19,7 +21,7 @@ func (self *File) Ask(s string) bool {
 	reader := bufio.NewReader(os.Stdin)
 
 	for {
-		fmt.Printf("%s %s? [y/n]: ", s, self.Path)
+		fmt.Printf("%s %s? [y/n]: ", s, self.Name)
 		response, err := reader.ReadString('\n')
 		if err != nil {
 			log.Fatal(err)
@@ -34,18 +36,22 @@ func (self *File) Ask(s string) bool {
 	}
 }
 
-func (self *File) Download() error {
+func (self *File) Download(destination string) error {
 	response, err := http.Get(self.Path)
 	if err != nil {
 		return err
 	}
 	defer response.Body.Close()
-	out, err := os.Create(self.Name)
+	out, err := os.Create(destination + self.Name)
 	if err != nil {
 		return err
 	}
 	defer out.Close()
 
-	_, err = io.Copy(out, response.Body)
+	bar := progressbar.DefaultBytes(
+		response.ContentLength,
+		"Downloading",
+	)
+	_, err = io.Copy(io.MultiWriter(out, bar), response.Body)
 	return err
 }
