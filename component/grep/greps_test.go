@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestIsKnownFile(t *testing.T) {
+func TestIsFileFormat(t *testing.T) {
 	units := []struct {
 		desc     string
 		in       string
@@ -20,6 +20,20 @@ func TestIsKnownFile(t *testing.T) {
 	for _, j := range units {
 		t.Run(j.desc, func(t *testing.T) {
 			if result := IsFileFormat(j.in); result != j.expected {
+				t.Errorf("Expected %t, received %t", j.expected, result)
+			}
+		})
+	}
+	unitsWithExt := []struct {
+		desc     string
+		in       string
+		expected bool
+	}{
+		{"Match with argument", "/tmp/private/file.aseprite", true},
+	}
+	for _, j := range unitsWithExt {
+		t.Run(j.desc, func(t *testing.T) {
+			if result := IsFileFormat(j.in, ".aseprite"); result != j.expected {
 				t.Errorf("Expected %t, received %t", j.expected, result)
 			}
 		})

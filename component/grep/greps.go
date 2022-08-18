@@ -25,7 +25,6 @@ func IsFileFormat(url string, ext ...string) bool {
 	return false
 }
 
-//TODO: add searching for userspecified extension
 func FileNameFromPath(path string) string {
 	pattern := regexp.MustCompile("[^/]+$")
 	name := pattern.FindString(path)
