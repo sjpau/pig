@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/sha256"
 	"fmt"
 	"time"
@@ -11,20 +12,27 @@ import (
 
 type HASH [32]byte
 
-func main() {
-	InitCmdOptions()
-	files := make(map[HASH]File)
-	domain := grep.DomainNameFromURL(FlagURL)
-	crawler := colly.NewCollector(
-		colly.AllowedDomains(domain),
-	)
-
-	crawler.Limit(&colly.LimitRule{
-		DomainGlob:  FlagURL + "/*",
-		Delay:       time.Duration(FlagLazy) * time.Second,
-		RandomDelay: 1 * time.Second,
-	})
-
+func CrawlWithTimeout(ctx context.Context, timeout time.Duration, crawler *colly.Collector, files map[HASH]File) {
+	if timeout != 0 {
+		ctx, cancel := context.WithTimeout(ctx, timeout)
+		stop := false
+		defer cancel()
+		go func(ctx context.Context) {
+			for {
+				select {
+				case <-ctx.Done():
+					stop = true
+					cancel()
+					return
+				}
+			}
+		}(ctx)
+		crawler.OnRequest(func(r *colly.Request) {
+			if stop {
+				r.Abort()
+			}
+		})
+	}
 	crawler.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		link := e.Attr("href")
 		url := e.Request.AbsoluteURL(link)
@@ -41,8 +49,24 @@ func main() {
 			crawler.Visit(url)
 		}
 	})
-
 	crawler.Visit(FlagURL)
+}
+
+func main() {
+	InitCmdOptions()
+	files := make(map[HASH]File)
+	domain := grep.DomainNameFromURL(FlagURL)
+	crawler := colly.NewCollector(
+		colly.AllowedDomains(domain),
+	)
+
+	crawler.Limit(&colly.LimitRule{
+		DomainGlob:  FlagURL + "/*",
+		Delay:       time.Duration(FlagLazy) * time.Second,
+		RandomDelay: 1 * time.Second,
+	})
+	ctx := context.Background()
+	CrawlWithTimeout(ctx, time.Duration(FlagTimer)*time.Second, crawler, files)
 	for _, value := range files {
 		if FlagAsk {
 			if value.Ask("Download") {

@@ -8,6 +8,7 @@ var (
 	FlagExt     string
 	FlagDest    string
 	FlagLazy    int
+	FlagTimer   int
 	FlagVerbose bool
 )
 
@@ -17,6 +18,7 @@ func InitCmdOptions() {
 	flag.StringVar(&FlagURL, "url", "", "Visit specified absolute URL.")
 	flag.StringVar(&FlagExt, "ext", "", "Look for files with specified extensions.")
 	flag.IntVar(&FlagLazy, "lazy", 0, "Crawl with specified delay.")
+	flag.IntVar(&FlagTimer, "timer", 0, "Stop crawling after a timeout.")
 	flag.StringVar(&FlagDest, "target", "", "Specify target directory for the downloads.")
 	flag.Parse()
 }
