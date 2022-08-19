@@ -69,7 +69,7 @@ func main() {
 	CrawlWithTimeout(ctx, time.Duration(FlagTimer)*time.Second, crawler, files)
 	for _, value := range files {
 		if FlagAsk {
-			if value.Ask("Download") {
+			if value.Ask("\nDownload") {
 				value.Download(FlagDest)
 			}
 		} else {

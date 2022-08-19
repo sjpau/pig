@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/schollz/progressbar/v3"
@@ -42,7 +43,7 @@ func (self *File) Download(destination string) error {
 		return err
 	}
 	defer response.Body.Close()
-	out, err := os.Create(destination + self.Name)
+	out, err := os.Create(filepath.Join(destination, self.Name))
 	if err != nil {
 		return err
 	}
